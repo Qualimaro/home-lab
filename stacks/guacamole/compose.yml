@@ -1,0 +1,66 @@
+services:
+
+  guacd:
+    image: guacamole/guacd:1.6.0
+    container_name: guacd
+    restart: unless-stopped
+    networks:
+      - guacamole
+
+  postgres:
+    image: postgres:17
+    container_name: guacamole-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: guacamole_db
+      POSTGRES_USER: guacamole
+      POSTGRES_PASSWORD: "${GUACAMOLE_DB_PASSWORD}"
+
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+    networks:
+      - guacamole
+
+  guacamole:
+    image: guacamole/guacamole:1.6.0
+    container_name: guacamole
+    restart: unless-stopped
+
+    depends_on:
+      - guacd
+      - postgres
+
+    environment:
+      GUACD_HOSTNAME: guacd
+      GUACD_PORT: 4822
+
+      POSTGRESQL_HOSTNAME: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_DATABASE: guacamole_db
+      POSTGRESQL_USERNAME: guacamole
+      POSTGRESQL_PASSWORD: "${GUACAMOLE_DB_PASSWORD}"
+
+      WEBAPP_CONTEXT: ROOT
+
+      OPENID_ENABLED: "true"
+      OPENID_AUTHORIZATION_ENDPOINT: "https://auth.qualimaro.fr/realms/Qualimaro/protocol/openid-connect/auth"
+      OPENID_JWKS_ENDPOINT: "https://auth.qualimaro.fr/realms/Qualimaro/protocol/openid-connect/certs"
+      OPENID_ISSUER: "https://auth.qualimaro.fr/realms/Qualimaro"
+      OPENID_CLIENT_ID: "guacamole"
+      OPENID_REDIRECT_URI: "https://guacamole.qualimaro.fr/"
+      OPENID_USERNAME_CLAIM_TYPE: "preferred_username"
+      OPENID_SCOPE: "openid profile email"
+
+      EXTENSION_PRIORITY: "openid,postgresql"
+
+    ports:
+      - "18080:8080"
+
+    networks:
+      - guacamole
+
+networks:
+  guacamole:

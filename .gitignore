@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+secrets/
+*_data/
+postgres_data/
+data/
+*.db
+*.sqlite
+*.sqlite3
