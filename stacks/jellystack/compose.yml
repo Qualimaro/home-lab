@@ -1,0 +1,149 @@
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    volumes:
+      - ./jellyfin_config:/config
+      - /home/qualimaro/media/Films:/Films
+      - /home/qualimaro/media/Series:/Series
+      - /home/qualimaro/media/Animes:/Animes
+      - "/home/qualimaro/media/Dessins Animes:/Dessins Animes"
+      - "/home/qualimaro/media/Animes Series:/Animes Series"
+      - "/home/qualimaro/media/Series Animees:/Series Animees"
+      - /home/qualimaro/media/Documentaires:/Documentaires
+      - /home/qualimaro/media/Audiobooks:/Audiobooks
+    ports:
+      - "8096:8096"
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: "1"
+      net.ipv6.conf.default.disable_ipv6: "1"
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      LOG_LEVEL: debug
+      TZ: Europe/Paris
+    volumes:
+      - ./jellyseerr_config:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    volumes:
+      - ./radarr_config:/config
+      - /home/qualimaro/media:/media
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    volumes:
+      - ./sonarr_config:/config
+      - /home/qualimaro/media:/media
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    volumes:
+      - ./prowlarr_config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    volumes:
+      - ./jackett_config:/config
+      - /home/qualimaro/media:/media
+    ports:
+      - "9117:9117"
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      TZ: Europe/Paris
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  rdtclient:
+    image: rogerfar/rdtclient:latest
+    container_name: rdtclient
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    volumes:
+      - ./rdtclient_config:/data/db
+      - /home/qualimaro/media:/media
+    ports:
+      - "6500:6500"
+    restart: unless-stopped
+
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    network_mode: host
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    ports:
+      - 13378:80
+    volumes:
+      - ./audiobooks_config:/config
+      - ./audiobooks_metadata:/metadata
+      - /home/qualimaro/media/Audiobooks:/audiobooks
+      - ./audiobooks_podcasts:/podcasts
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Europe/Paris
+    restart: unless-stopped
+
+  vaultwarden:
+    image: vaultwarden/server:1.36.0
+    container_name: vaultwarden
+    environment:
+      TZ: Europe/Paris
+      SIGNUPS_ALLOWED: "true"
+    volumes:
+      - ./vaultwarden_data:/data
+    ports:
+      - "8081:80"
+    restart: unless-stopped
