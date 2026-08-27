@@ -18,9 +18,8 @@ services:
       POSTGRES_PASSWORD: "${GUACAMOLE_DB_PASSWORD}"
 
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
-      - ./init:/docker-entrypoint-initdb.d
-
+      - /data/compose/6/postgres_data:/var/lib/postgresql/data
+      - /data/compose/6/init:/docker-entrypoint-initdb.d
     networks:
       - guacamole
 
